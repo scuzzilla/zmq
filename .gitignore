@@ -1,0 +1,63 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# VSCode
+.vscode/*
+
+# SWP
+*.swp
+
+# BUILD
+build/*
+
+# Protobuf & gRPC helpers
+src/proto/Cisco/*.cc
+src/proto/Cisco/*.h
+src/proto/Huawei/*.cc
+src/proto/Huawei/*.h
+src/proto/Juniper/*.cc
+src/proto/Juniper/*.h
+src/proto/OpenConfig/*.cc
+src/proto/OpenConfig/*.h
+
+# BIN
+bin/*
+cppzmq
+
+# YouCompleteMe
+.cache/*
+compile_commands.json
+
+# CSV
+csv/*.csv
+

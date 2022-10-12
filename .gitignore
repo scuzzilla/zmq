@@ -53,6 +53,7 @@ src/proto/OpenConfig/*.h
 # BIN
 bin/*
 cppzmq
+sockets
 
 # YouCompleteMe
 .cache/*

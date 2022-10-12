@@ -1,13 +1,20 @@
 #include <iostream>
+#include <string>
 #include <vector>
 #include <random>
 #include <thread>
 #include <chrono>
+#include "cppzmq/zmq.hpp"
+#include "cppzmq/zmq_addon.hpp"
 
 
 void *vec_writer(std::string &message, std::vector<std::string> &vec);
 void *vec_reader(std::vector<std::string> &vec);
 std::string random_string(std::size_t length);
+void zmq_push(const std::string &message,
+    const std::string &thread_id,
+    zmq::context_t &ctx);
+void zmq_pull(zmq::context_t &zmq);
 
 int main(void)
 {
@@ -39,10 +46,17 @@ void *vec_writer(std::string &message, std::vector<std::string> &vec)
 
 void *vec_reader(std::vector<std::string> &vec)
 {
+    zmq::context_t ctx;
     size_t vec_size = vec.size();
     size_t index = (0 + (rand() % vec_size));
 
-    std::cout << std::this_thread::get_id() << " " << vec.at(index) << "\n";
+	auto t_id = std::this_thread::get_id();
+	std::stringstream ss;
+    ss << t_id;
+    std::string thread_id = ss.str();
+
+	zmq_push(vec.at(index), thread_id, ctx);
+    std::cout << thread_id << " " << vec.at(index) << "\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     return (0);
@@ -65,5 +79,23 @@ std::string random_string(std::size_t length)
     }
 
     return random_string;
+}
+
+void zmq_push(const std::string &message,
+    const std::string &thread_id,
+    zmq::context_t &ctx)
+{
+    zmq::socket_t sock(ctx, zmq::socket_type::push);
+    sock.bind("ipc://sockets/" + thread_id);
+    sock.send(zmq::buffer(message), zmq::send_flags::dontwait);
+}
+
+void zmq_pull(zmq::context_t &ctx)
+{
+	zmq::message_t message;
+    zmq::socket_t sock(ctx, zmq::socket_type::pull);
+    sock.connect("inproc://socket");
+    auto res = sock.recv(message, zmq::recv_flags::none);
+	std::cout << "zmq_pull: " << res.value() << "\n";
 }
 

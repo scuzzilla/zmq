@@ -14,20 +14,14 @@ int main(void)
 
     // ZMQ Context & socket
     zmq::context_t ctx;
-    zmq::socket_t sock_1(ctx, zmq::socket_type::pull);
-    zmq::socket_t sock_2(ctx, zmq::socket_type::pull);
-    sock_1.connect("ipc://sockets/1");
-    sock_2.connect("ipc://sockets/2");
-    //sock.connect("tcp://127.0.0.1:3001");
+    zmq::socket_t sock(ctx, zmq::socket_type::pull);
+    sock.connect("ipc://sockets/0");
 
     // Actual receiving
     while(true) {
-        auto res_1 = sock_1.recv(message, zmq::recv_flags::none);
-        auto res_2 = sock_2.recv(message, zmq::recv_flags::none);
-        assert(res_1.value() != 0);
-	    std::cout << "zmq_pull_1: " << message.to_string() << "\n";
-        assert(res_2.value() != 0);
-	    std::cout << "zmq_pull_2: " << message.to_string() << "\n";
+        auto res = sock.recv(message, zmq::recv_flags::none);
+        assert(res.value() != 0);
+	    std::cout << "zmq_pull: " << message.to_string() << "\n";
     }
 
     return EXIT_SUCCESS;

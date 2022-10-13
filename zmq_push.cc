@@ -37,8 +37,8 @@ int main(void)
 
     // Read from the vector - multiple threads
     std::vector<std::thread> th_fire;
-    size_t th = 5;
-    for (size_t t = 0; t <= th; ++t) {
+    size_t th = 1;
+    for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
             &vec_reader,
             std::ref(vec),
@@ -81,7 +81,7 @@ void *vec_reader(
     sock.bind("ipc://sockets/0");
     while(true) {
         size_t index = (0 + (rand() % vec_size));
-        std::cout << thread_id << " " << vec.at(index) << "\n";
+        //std::cout << thread_id << " " << vec.at(index) << "\n";
         sock.send(zmq::buffer(vec.at(index)), zmq::send_flags::dontwait);
         //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

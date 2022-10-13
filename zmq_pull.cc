@@ -20,8 +20,11 @@ int main(void)
     // Actual receiving
     while(true) {
         auto res = sock.recv(message, zmq::recv_flags::none);
-        assert(res.value() != 0);
-	    std::cout << "zmq_pull: " << message.to_string() << "\n";
+        //assert(res.value() != 0);
+	    //std::cout << "zmq_pull: " << message.to_string() << "\n";
+        if (res.value() != 0) {
+	        std::cout << "zmq_pull: " << message.to_string() << "\n";
+        }
     }
 
     return EXIT_SUCCESS;

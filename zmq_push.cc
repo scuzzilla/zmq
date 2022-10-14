@@ -37,8 +37,6 @@ int main(void)
     std::cout << "Random's strings vector Ready ...\n";
 
     // Read from the vector - multiple threads
-    // Firing a ZMQ PUSH per thread with a dedicated socket
-    // the socket fd is derived from the thread number sequentially
     std::vector<std::thread> th_fire;
     size_t th = 3;
     std::cout << "Firing " << th << " threads, Reading & PUSH-ing\n";
@@ -77,21 +75,20 @@ void *zmq_push(
     size_t vec_size = vec.size();
 
     // --- Convert the thread ID into string --- //
-    auto t_id = std::this_thread::get_id();
-    std::stringstream ss;
-    ss << t_id;
-    std::string thread_id = ss.str();
-    // --- Convert the thread ID into string --- //
 
-    std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
+    std::string sok = "ipc:///tmp/my_socket.sock";
+    //std::string sok = "tcp://localhost:4242";
     std::cout << "PUSH-ing to " << sok << "\n";
-    sock.bind(sok);
+    sock.connect(sok);
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
-        //std::cout << thread_id << " " << vec.at(index) << "\n";
-        sock.send(zmq::buffer(vec.at(index)), zmq::send_flags::dontwait);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+	try{
+        	sock.send(zmq::buffer(vec.at(index)));
+	}catch(zmq::error_t& e){
+		std::cout << "ZMQ exception e : " << e.what() << std::endl;
+	}
     }
 
     return (0);

@@ -51,9 +51,10 @@ src/proto/OpenConfig/*.cc
 src/proto/OpenConfig/*.h
 
 # BIN
-bin/*
+bin/zmq_push
+bin/zmq_pull
 cppzmq
-sockets
+!sockets/SOCKETS.md
 
 # YouCompleteMe
 .cache/*

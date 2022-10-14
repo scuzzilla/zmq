@@ -5,25 +5,26 @@
 #include <thread>
 #include <chrono>
 #include <unistd.h>
-#include "cppzmq/zmq.hpp"
-#include "cppzmq/zmq_addon.hpp"
+#include "include/zmq.hpp"
+#include "include/zmq_addon.hpp"
 
 
 void *vec_writer(std::string &message, std::vector<std::string> &vec);
 void *vec_reader(
     std::vector<std::string> &vec,
     zmq::context_t &ctx,
-    zmq::socket_t &sock);
+    size_t socket_fd);
 std::string random_string(std::size_t length);
 
 int main(void)
 {
+    // Random's strings vector - simulating a generic source of data
     std::vector<std::string> vec;
 
+    // ZMQ context shared among threads
     zmq::context_t ctx;
-    zmq::socket_t sock(ctx, zmq::socket_type::push);
 
-    // Populate the vector - single thread
+    // Populate the Random's strings vector (single thread)
     size_t iterations = 0;
     while (iterations <= 1000) {
         std::string rnd_string = random_string(10);
@@ -33,17 +34,20 @@ int main(void)
         iterations++;
     }
 
-    std::cout << "Vector Ready ...\n";
+    std::cout << "Random's strings vector Ready ...\n";
 
     // Read from the vector - multiple threads
+    // Firing a ZMQ PUSH per thread with a dedicated socket
+    // the socket fd is derived from the thread number sequentially
     std::vector<std::thread> th_fire;
-    size_t th = 1;
+    size_t th = 3;
+    std::cout << "Firing " << th << " threads, Reading & PUSH-ing\n";
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
             &vec_reader,
             std::ref(vec),
             std::ref(ctx),
-            std::ref(sock)));
+            t));
     }
 
     for (std::thread &t : th_fire) {
@@ -67,19 +71,23 @@ void *vec_writer(std::string &message, std::vector<std::string> &vec)
 void *vec_reader(
     std::vector<std::string> &vec,
     zmq::context_t &ctx,
-    zmq::socket_t &sock)
+    size_t socket_fd)
 {
+    zmq::socket_t sock(ctx, zmq::socket_type::push);
     size_t vec_size = vec.size();
 
-	// --- Convert the thread ID into string --- //
+    // --- Convert the thread ID into string --- //
     auto t_id = std::this_thread::get_id();
-	std::stringstream ss;
+    std::stringstream ss;
     ss << t_id;
     std::string thread_id = ss.str();
-	// --- Convert the thread ID into string --- //
+    // --- Convert the thread ID into string --- //
 
-    sock.bind("ipc://sockets/0");
+    std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
+    std::cout << "PUSH-ing to " << sok << "\n";
+    sock.bind(sok);
     while(true) {
+        // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
         //std::cout << thread_id << " " << vec.at(index) << "\n";
         sock.send(zmq::buffer(vec.at(index)), zmq::send_flags::dontwait);

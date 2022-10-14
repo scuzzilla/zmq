@@ -18,7 +18,7 @@ int main(void)
 
     // Actual receiving
     std::vector<std::thread> th_fire;
-    size_t th = 3;
+    size_t th = 1;
     std::cout << "Firing " << th << " threads, Reading & PULL-ing\n";
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
@@ -60,7 +60,8 @@ void *zmq_pull(
     while(true) {
         auto res = sock.recv(message, zmq::recv_flags::none);
         if (res.value() != 0) {
-            std::cout << "zmq_pull: " << message.to_string() << "\n";
+            std::cout << thread_id << " PULL-ing from " << sok << ": "
+                << message.to_string() << "\n";
         }
         //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <unistd.h>
+#include <zmq.hpp>
 #include "include/zmq.hpp"
 #include "include/zmq_addon.hpp"
 
@@ -21,8 +22,18 @@ int main(void)
     // Random's strings vector - simulating a generic source of data
     std::vector<std::string> vec;
 
+    // --- Required by ZMQ PROXY --- //
     // ZMQ context shared among threads
     zmq::context_t ctx;
+
+    // socket to be Polled
+    zmq::socket_t clients(ctx, zmq::socket_type::push);
+    clients.bind("ipc://sockets/0");
+
+    // Interleaving threads
+    zmq::socket_t workers(ctx, zmq::socket_type::dealer);
+    workers.bind("inproc://workers");
+    // --- Required by ZMQ PROXY --- //
 
     // Populate the Random's strings vector (single thread)
     size_t iterations = 0;
@@ -49,6 +60,12 @@ int main(void)
             std::ref(ctx),
             t));
     }
+
+    //  Connect work threads to client threads via a queue
+    zmq::proxy(
+        static_cast<zmq::socket_ref>(clients),
+        static_cast<zmq::socket_ref>(workers),
+        nullptr);
 
     for (std::thread &t : th_fire) {
         if (t.joinable()) {
@@ -83,18 +100,20 @@ void *zmq_push(
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
-    std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
-    std::cout << "PUSH-ing to " << sok << "\n";
-    sock.bind(sok);
+    std::string sok = "inproc://workers";
+    std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
+    sock.connect(sok);
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
+        // Originating thread-id + Random string
+        std::string payload = thread_id + " " + vec.at(index);
         //std::cout << thread_id << " " << vec.at(index) << "\n";
-        sock.send(zmq::buffer(vec.at(index)), zmq::send_flags::dontwait);
+        sock.send(zmq::buffer(payload), zmq::send_flags::dontwait);
         //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    return (0);
+    return (NULL);
 }
 
 // Random string generation

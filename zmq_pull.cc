@@ -13,7 +13,6 @@ void *zmq_pull(
 // CONNECT/RECEIVE - PULL
 int main(void)
 {
-
     // ZMQ Context
     zmq::context_t ctx;
 

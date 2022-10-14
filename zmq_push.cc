@@ -10,7 +10,7 @@
 
 
 void *vec_writer(std::string &message, std::vector<std::string> &vec);
-void *vec_reader(
+void *zmq_push(
     std::vector<std::string> &vec,
     zmq::context_t &ctx,
     size_t socket_fd);
@@ -44,7 +44,7 @@ int main(void)
     std::cout << "Firing " << th << " threads, Reading & PUSH-ing\n";
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
-            &vec_reader,
+            &zmq_push,
             std::ref(vec),
             std::ref(ctx),
             t));
@@ -67,8 +67,8 @@ void *vec_writer(std::string &message, std::vector<std::string> &vec)
     return (0);
 }
 
-// Read from the vector - multiple threads
-void *vec_reader(
+// Read from the vector & ZMQ PUSH - multiple threads
+void *zmq_push(
     std::vector<std::string> &vec,
     zmq::context_t &ctx,
     size_t socket_fd)

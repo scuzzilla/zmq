@@ -100,9 +100,20 @@ void *zmq_push(
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
+<<<<<<< HEAD
     std::string sok = "inproc://workers";
     std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
     sock.connect(sok);
+||||||| 0f24ed5
+    std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
+    std::cout << "PUSH-ing to " << sok << "\n";
+    sock.bind(sok);
+=======
+    //std::string sok = "inproc://workers";
+    std::string sok = "ipc:///tmp/0";
+    std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
+    sock.connect(sok);
+>>>>>>> t1
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));

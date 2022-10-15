@@ -54,9 +54,10 @@ void *zmq_pull(
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
-    std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
+    //std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
+    std::string sok = "ipc:///tmp/0";
     std::cout << "PULL-ing from " << sok << "\n";
-    sock.connect(sok);
+    sock.bind(sok);
     while(true) {
         auto res = sock.recv(message, zmq::recv_flags::none);
         if (res.value() != 0) {

@@ -6,9 +6,7 @@
 #include "include/zmq_addon.hpp"
 
 
-void *zmq_pull(
-    zmq::context_t &ctx,
-    size_t socket_fd);
+void *zmq_pull(zmq::context_t &ctx);
 
 // CONNECT/RECEIVE - PULL
 int main(void)
@@ -23,8 +21,7 @@ int main(void)
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
             &zmq_pull,
-            std::ref(ctx),
-            t));
+            std::ref(ctx)));
     }
 
     for (std::thread &t : th_fire) {
@@ -37,9 +34,7 @@ int main(void)
 }
 
 // Read from socks - multiple threads
-void *zmq_pull(
-    zmq::context_t &ctx,
-    size_t socket_fd)
+void *zmq_pull(zmq::context_t &ctx)
 {
     zmq::socket_t sock(ctx, zmq::socket_type::pull);
 
@@ -54,8 +49,7 @@ void *zmq_pull(
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
-    //std::string sok = "ipc://sockets/" + std::to_string(socket_fd);
-    std::string sok = "ipc:///tmp/0";
+    std::string sok = "ipc://sockets/0";
     std::cout << "PULL-ing from " << sok << "\n";
     sock.bind(sok);
     while(true) {

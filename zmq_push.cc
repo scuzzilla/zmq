@@ -13,8 +13,7 @@
 void *vec_writer(std::string &message, std::vector<std::string> &vec);
 void *zmq_push(
     std::vector<std::string> &vec,
-    zmq::context_t &ctx,
-    size_t socket_fd);
+    zmq::context_t &ctx);
 std::string random_string(std::size_t length);
 
 int main(void)
@@ -71,8 +70,7 @@ void *vec_writer(std::string &message, std::vector<std::string> &vec)
 // Read from the vector & ZMQ PUSH - multiple threads
 void *zmq_push(
     std::vector<std::string> &vec,
-    zmq::context_t &ctx,
-    size_t socket_fd)
+    zmq::context_t &ctx)
 {
     zmq::socket_t sock(ctx, zmq::socket_type::push);
     size_t vec_size = vec.size();

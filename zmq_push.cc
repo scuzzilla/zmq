@@ -46,8 +46,7 @@ int main(void)
         th_fire.push_back(std::thread (
             &zmq_push,
             std::ref(vec),
-            std::ref(ctx),
-            t));
+            std::ref(ctx)));
     }
 
     for (std::thread &t : th_fire) {

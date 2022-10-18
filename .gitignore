@@ -53,6 +53,7 @@ src/proto/OpenConfig/*.h
 # BIN
 bin/zmq_push
 bin/zmq_pull
+bin/zpp_main
 cppzmq
 !sockets/SOCKETS.md
 

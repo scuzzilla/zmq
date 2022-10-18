@@ -1,4 +1,6 @@
-#include "zmq_push_pull.h"
+//  g++ -O2 -Wall -pedantic zpp/zpp.cc zpp/zpp_main.cc -o bin/zpp_main -lzmq
+
+#include "zpp.h"
 
 
 int main(void)

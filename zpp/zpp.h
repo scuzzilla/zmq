@@ -6,8 +6,7 @@
 #include <chrono>
 #include <unistd.h>
 #include <zmq.hpp>
-#include "include/zmq.hpp"
-#include "include/zmq_addon.hpp"
+#include <zmq_addon.hpp>
 
 
 void *vec_writer(std::string &message, std::vector<std::string> &vec);

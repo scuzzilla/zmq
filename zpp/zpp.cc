@@ -32,7 +32,7 @@ void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx,
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
-        // Originating thread-id + Random string
+        // Populating the struct with rnd string
         pload->random_str = vec.at(index).c_str();
         //std::cout << thread_id << " " << vec.at(index) << "\n";
         zmq::message_t message(pload, size);
@@ -49,7 +49,7 @@ void zmq_pull(zmq::context_t &ctx)
     zmq::socket_t sock(ctx, zmq::socket_type::pull);
 
     // Message Buff preparation
-    const size_t size = 1024;
+    const size_t size = 8;
     zmq::message_t message(size);
 
     // --- Convert the thread ID into string --- //

@@ -9,7 +9,8 @@ void vec_writer(std::string &message, std::vector<std::string> &vec)
 }
 
 // Read from the vector & ZMQ PUSH - multiple threads
-void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx, payload *blob)
+void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx,
+    payload *pload)
 {
     // Message Buff preparation
     // PUSH-ing only the pointer to the data-struct
@@ -32,9 +33,9 @@ void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx, payload *blob
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
         // Originating thread-id + Random string
-        blob->random_str = vec.at(index).c_str();
+        pload->random_str = vec.at(index).c_str();
         //std::cout << thread_id << " " << vec.at(index) << "\n";
-        zmq::message_t message(blob, size);
+        zmq::message_t message(pload, size);
         sock.send(message, zmq::send_flags::none);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

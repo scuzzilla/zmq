@@ -1,6 +1,4 @@
 #include "zpp.h"
-#include <exception>
-#include <thread>
 
 
 // Populate the vector with random strings - single thread
@@ -11,8 +9,12 @@ void vec_writer(std::string &message, std::vector<std::string> &vec)
 }
 
 // Read from the vector & ZMQ PUSH - multiple threads
-void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx)
+void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx, payload *blob)
 {
+    // Message Buff preparation
+    // PUSH-ing only the pointer to the data-struct
+    const size_t size = 8;
+
     zmq::socket_t sock(ctx, zmq::socket_type::push);
     size_t vec_size = vec.size();
 
@@ -24,15 +26,16 @@ void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx)
     // --- Convert the thread ID into string --- //
 
     std::string sok = "ipc://sockets/0";
-    std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
+    //std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
     sock.connect(sok);
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
         // Originating thread-id + Random string
-        std::string payload = thread_id + " " + vec.at(index);
+        blob->random_str = vec.at(index).c_str();
         //std::cout << thread_id << " " << vec.at(index) << "\n";
-        sock.send(zmq::buffer(payload), zmq::send_flags::dontwait);
+        zmq::message_t message(blob, size);
+        sock.send(message, zmq::send_flags::none);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
@@ -56,13 +59,13 @@ void zmq_pull(zmq::context_t &ctx)
     // --- Convert the thread ID into string --- //
 
     std::string sok = "ipc://sockets/0";
-    std::cout << "PULL-ing from " << sok << "\n";
+    //std::cout << "PULL-ing from " << sok << "\n";
     sock.bind(sok);
     while(true) {
         auto res = sock.recv(message, zmq::recv_flags::none);
         if (res.value() != 0) {
             std::cout << thread_id << " PULL-ing from " << sok << ": "
-                << message.to_string() << "\n";
+                << static_cast<payload *>(message.data())->random_str << "\n";
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

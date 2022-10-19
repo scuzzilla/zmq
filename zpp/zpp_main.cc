@@ -1,11 +1,13 @@
 //  g++ -O2 -Wall -pedantic zpp/zpp.cc zpp/zpp_main.cc -o bin/zpp_main -lzmq
 
-#include <pthread.h>
 #include "zpp.h"
 
 
 int main(void)
 {
+    // pointer to the data-struct to the heap
+    payload *p = (payload *) malloc(sizeof(payload *));
+
     // Random's strings vector - simulating a generic source of data
     std::vector<std::string> vec;
 
@@ -21,7 +23,7 @@ int main(void)
         iterations++;
     }
 
-    std::cout << "Random's strings vector Ready ...\n";
+    //std::cout << "Random's strings vector Ready ...\n";
 
     // Read from the vector - multiple threads
     // Firing a ZMQ PUSH per thread with a dedicated socket
@@ -33,7 +35,8 @@ int main(void)
         th_fire.push_back(std::thread (
             &zmq_push,
             std::ref(vec),
-            std::ref(ctx)));
+            std::ref(ctx),
+            p));
     }
 
     // PULL-ing

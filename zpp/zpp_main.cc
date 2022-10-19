@@ -30,7 +30,7 @@ int main(void)
     // the socket fd is derived from the thread number sequentially
     std::vector<std::thread> th_fire;
     size_t th = 3;
-    std::cout << "Firing " << th << " threads, Reading & PUSH-ing:\n";
+    //std::cout << "Firing " << th << " threads, Reading & PUSH-ing:\n";
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
             &zmq_push,

@@ -1,5 +1,6 @@
 //  g++ -O2 -Wall -pedantic zpp/zpp.cc zpp/zpp_main.cc -o bin/zpp_main -lzmq
 
+#include <pthread.h>
 #include "zpp.h"
 
 
@@ -15,9 +16,8 @@ int main(void)
     size_t iterations = 0;
     while (iterations <= 1000) {
         std::string rnd_string = random_string(10);
-        std::thread t1(&vec_writer, std::ref(rnd_string), std::ref(vec));
+        vec_writer(rnd_string, vec);
         // Firing the thread
-        t1.join();
         iterations++;
     }
 
@@ -28,16 +28,16 @@ int main(void)
     // the socket fd is derived from the thread number sequentially
     std::vector<std::thread> th_fire;
     size_t th = 3;
-    std::cout << "Firing " << th << " threads, Reading & PUSH-ing\n";
+    std::cout << "Firing " << th << " threads, Reading & PUSH-ing:\n";
     for (size_t t = 0; t < th; ++t) {
         th_fire.push_back(std::thread (
             &zmq_push,
             std::ref(vec),
             std::ref(ctx)));
-        th_fire.push_back(std::thread (
-            &zmq_pull,
-            std::ref(ctx)));
     }
+
+    // PULL-ing
+    zmq_pull(ctx);
 
     for (std::thread &t : th_fire) {
         if (t.joinable()) {

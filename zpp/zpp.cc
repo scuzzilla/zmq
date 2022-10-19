@@ -1,18 +1,17 @@
 #include "zpp.h"
+#include <exception>
+#include <thread>
 
 
 // Populate the vector with random strings - single thread
-void *vec_writer(std::string &message, std::vector<std::string> &vec)
+void vec_writer(std::string &message, std::vector<std::string> &vec)
 {
     vec.push_back(message);
     //std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    return (0);
 }
 
 // Read from the vector & ZMQ PUSH - multiple threads
-void *zmq_push(
-    std::vector<std::string> &vec,
-    zmq::context_t &ctx)
+void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx)
 {
     zmq::socket_t sock(ctx, zmq::socket_type::push);
     size_t vec_size = vec.size();
@@ -34,14 +33,14 @@ void *zmq_push(
         std::string payload = thread_id + " " + vec.at(index);
         //std::cout << thread_id << " " << vec.at(index) << "\n";
         sock.send(zmq::buffer(payload), zmq::send_flags::dontwait);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     return (NULL);
 }
 
 // Read from socks - multiple threads
-void *zmq_pull(zmq::context_t &ctx)
+void zmq_pull(zmq::context_t &ctx)
 {
     zmq::socket_t sock(ctx, zmq::socket_type::pull);
 
@@ -65,10 +64,8 @@ void *zmq_pull(zmq::context_t &ctx)
             std::cout << thread_id << " PULL-ing from " << sok << ": "
                 << message.to_string() << "\n";
         }
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    return (NULL);
 }
 
 // Random string generation

@@ -5,7 +5,7 @@
 
 int main(void)
 {
-    // pointer to the data-struct to the heap
+    // pointer to the data-struct (heap)
     payload *pload = (payload *) malloc(sizeof(payload *));
 
     // Random's strings vector - simulating a generic source of data

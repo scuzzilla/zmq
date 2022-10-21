@@ -5,9 +5,6 @@
 
 int main(void)
 {
-    // pointer to the data-struct (heap)
-    Payload *pload = (Payload *) malloc(sizeof(Payload));
-
     // Random's strings vector - simulating a generic source of data
     std::vector<std::string> vec;
 
@@ -35,8 +32,7 @@ int main(void)
         th_fire.push_back(std::thread (
             &zmq_push,
             std::ref(vec),
-            std::ref(ctx),
-            pload));
+            std::ref(ctx)));
     }
 
     // PULL-ing

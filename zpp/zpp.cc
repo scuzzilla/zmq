@@ -1,12 +1,14 @@
 #include "zpp.h"
 
 
+Payload *pload = (Payload *) malloc(sizeof(Payload));
+
 void initPayload(Payload *pload, const  char *random_str, const char *simple)
 {
     pload->random_str = (char *) malloc(strlen(random_str) + 1);
-    strcpy(pload->random_str, random_str);
+    strncpy(pload->random_str, random_str, strlen(random_str) + 1);
     pload->simple = (char *) malloc(strlen(simple) + 1);
-    strcpy(pload->simple, simple);
+    strncpy(pload->simple, simple, strlen(simple) + 1);
 }
 
 void freePayload(Payload *pload)
@@ -25,8 +27,7 @@ void vec_writer(std::string &message, std::vector<std::string> &vec)
 // Read from the vector & ZMQ PUSH - multiple threads
 void *zmq_push(
     std::vector<std::string> &vec,
-    zmq::context_t &ctx,
-    Payload *pload)
+    zmq::context_t &ctx)
 {
     // Message Buff preparation
     // PUSH-ing only the pointer to the data-struct
@@ -65,7 +66,7 @@ void zmq_pull(zmq::context_t &ctx)
     zmq::socket_t sock(ctx, zmq::socket_type::pull);
 
     // Message Buff preparation
-    const size_t size = 8;
+    const size_t size = sizeof(Payload);
     zmq::message_t message(size);
 
     // --- Convert the thread ID into string --- //
@@ -86,7 +87,6 @@ void zmq_pull(zmq::context_t &ctx)
                 << static_cast<Payload *>(message.data())->simple << "\n";
         }
         freePayload(static_cast<Payload *>(message.data()));
-        //free(static_cast<Payload *>(message.data()));
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

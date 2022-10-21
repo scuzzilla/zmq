@@ -6,25 +6,22 @@
 void initPayload(
     Payload **pload_, const char *random_str, const char *simple_str)
 {
-    Payload *pload = *pload_;
-    pload = (Payload *) malloc(sizeof(Payload));
-    //memset(pload, 0, sizeof(Payload));
+    Payload *pload = (Payload *) malloc(sizeof(Payload));
 
     size_t length_random_str = (strlen(random_str) + 1);
     size_t length_simple_str = (strlen(simple_str) + 1);
-    pload->random_str = (char *) malloc(length_random_str);
-    memset(pload->random_str, 0, (length_random_str * sizeof(char)));
-    strncpy(pload->random_str, random_str, length_random_str);
-    pload->simple_str = (char *) malloc(length_simple_str);
-    memset(pload->simple_str, 0, (length_simple_str * sizeof(char)));
-    strncpy(pload->simple_str, simple_str, length_simple_str);
+    pload->random_str = strndup(random_str, strlen(random_str));
+    pload->simple_str = strndup(simple_str, strlen(random_str));
+
+    *pload_ = pload;
+    //fprintf(stderr, "Alloced: %p\n", pload);
 }
 
 void freePayload(Payload *pload)
 {
     free(pload->random_str);
     free(pload->simple_str);
-    //free(pload);
+    free(pload);
 }
 
 // Populate the vector with random strings - single thread
@@ -43,7 +40,7 @@ void *zmq_push(
 
     // Message Buff preparation
     // PUSH-ing only the pointer to the data-struct
-    const size_t size = sizeof(Payload);
+    const size_t size = sizeof(Payload*);
 
     zmq::socket_t sock(ctx, zmq::socket_type::push);
     size_t vec_size = vec.size();
@@ -55,18 +52,19 @@ void *zmq_push(
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
-    std::string sok = "ipc://sockets/0";
+    std::string sok = "ipc:///tmp/sockets0";
     //std::cout << "Thread " << thread_id << " PUSH-ing to " << sok << "\n";
     sock.connect(sok);
     while(true) {
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
-        // Populating the struct with rnd string
         initPayload(&pload, vec.at(index).c_str(), "simple");
-        //std::cout << thread_id << " " << vec.at(index) << "\n";
+	std::cerr << "[" << t_id <<  "] Sending (" << pload << ") " <<
+		"simple: " << pload->simple_str << ", random: "
+		<< pload->random_str << std::endl;
         zmq::message_t message(&pload, size);
         sock.send(message, zmq::send_flags::none);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     return (NULL);
@@ -88,18 +86,18 @@ void zmq_pull(zmq::context_t &ctx)
     std::string thread_id = ss.str();
     // --- Convert the thread ID into string --- //
 
-    std::string sok = "ipc://sockets/0";
+    std::string sok = "ipc:///tmp/sockets0";
     //std::cout << "PULL-ing from " << sok << "\n";
     sock.bind(sok);
     while(true) {
         auto res = sock.recv(message, zmq::recv_flags::none);
-        if (res.value() != 0) {
-            std::cout << thread_id << " PULL-ing from " << sok << ": "
-                << ((Payload *) message.handle())->random_str << " "
-                << ((Payload *) message.handle())->simple_str << "\n";
-        }
+
+	Payload* pload = *(Payload **)message.data();
+	std::cerr << "[PULL] Receiving (" << pload << ") " <<
+		"simple: " << pload->simple_str << ", random: "
+		<< pload->random_str << std::endl;
         //std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        freePayload(((Payload *) message.data()));
+        freePayload(pload);
     }
 }
 

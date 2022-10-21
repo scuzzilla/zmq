@@ -6,7 +6,7 @@
 int main(void)
 {
     // pointer to the data-struct (heap)
-    payload *pload = (payload *) malloc(sizeof(payload *));
+    Payload *pload = (Payload *) malloc(sizeof(Payload));
 
     // Random's strings vector - simulating a generic source of data
     std::vector<std::string> vec;
@@ -48,6 +48,7 @@ int main(void)
         }
     }
 
+    //free(pload);
     return EXIT_SUCCESS;
 }
 

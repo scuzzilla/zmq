@@ -12,11 +12,12 @@
 
 typedef struct {
     char *random_str;
-    char *simple;
-} Payload;
+    char *simple_str;
+} __attribute__ ((packed)) Payload;
 
 extern Payload *pload;
-void initPayload(Payload *pload, const  char *random_str, const char *simple);
+void initPayload(
+    Payload *pload, const  char *random_str, const char *simple_str);
 void freePayload(Payload *pload);
 void vec_writer(std::string &message, std::vector<std::string> &vec);
 void *zmq_push(std::vector<std::string> &vec, zmq::context_t &ctx);

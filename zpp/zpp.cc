@@ -3,18 +3,24 @@
 
 Payload *pload = (Payload *) malloc(sizeof(Payload));
 
-void initPayload(Payload *pload, const  char *random_str, const char *simple)
+void initPayload(
+    Payload *pload, const char *random_str, const char *simple_str)
 {
-    pload->random_str = (char *) malloc(strlen(random_str) + 1);
-    strncpy(pload->random_str, random_str, strlen(random_str) + 1);
-    pload->simple = (char *) malloc(strlen(simple) + 1);
-    strncpy(pload->simple, simple, strlen(simple) + 1);
+    size_t length_random_str = (strlen(random_str) + 1);
+    size_t length_simple_str = (strlen(simple_str) + 1);
+
+    pload->random_str = (char *) malloc(length_random_str);
+    memset(pload->random_str, 0, (length_random_str * sizeof(char)));
+    strncpy(pload->random_str, random_str, length_random_str);
+    pload->simple_str = (char *) malloc(length_simple_str);
+    memset(pload->simple_str, 0, (length_simple_str * sizeof(char)));
+    strncpy(pload->simple_str, simple_str, length_simple_str);
 }
 
 void freePayload(Payload *pload)
 {
     free(pload->random_str);
-    free(pload->simple);
+    free(pload->simple_str);
 }
 
 // Populate the vector with random strings - single thread
@@ -54,7 +60,7 @@ void *zmq_push(
         //std::cout << thread_id << " " << vec.at(index) << "\n";
         zmq::message_t message(pload, size);
         sock.send(message, zmq::send_flags::none);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     return (NULL);
@@ -83,11 +89,12 @@ void zmq_pull(zmq::context_t &ctx)
         auto res = sock.recv(message, zmq::recv_flags::none);
         if (res.value() != 0) {
             std::cout << thread_id << " PULL-ing from " << sok << ": "
-                << static_cast<Payload *>(message.data())->random_str << " "
-                << static_cast<Payload *>(message.data())->simple << "\n";
+                << ((Payload *) message.data())->random_str << " "
+                << ((Payload *) message.data())->simple_str << "\n";
         }
-        //freePayload(static_cast<Payload *>(message.data()));
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        freePayload(((Payload *) message.data()));
+        //free(((Payload *) message.data()));
     }
 }
 

@@ -86,7 +86,7 @@ void zmq_pull(zmq::context_t &ctx)
                 << static_cast<Payload *>(message.data())->random_str << " "
                 << static_cast<Payload *>(message.data())->simple << "\n";
         }
-        freePayload(static_cast<Payload *>(message.data()));
+        //freePayload(static_cast<Payload *>(message.data()));
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

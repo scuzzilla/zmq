@@ -1,14 +1,17 @@
 #include "zpp.h"
 
 
-Payload *pload = (Payload *) malloc(sizeof(Payload));
+//Payload *pload = (Payload *) malloc(sizeof(Payload));
 
 void initPayload(
-    Payload *pload, const char *random_str, const char *simple_str)
+    Payload **pload_, const char *random_str, const char *simple_str)
 {
+    Payload *pload = *pload_;
+    pload = (Payload *) malloc(sizeof(Payload));
+    //memset(pload, 0, sizeof(Payload));
+
     size_t length_random_str = (strlen(random_str) + 1);
     size_t length_simple_str = (strlen(simple_str) + 1);
-
     pload->random_str = (char *) malloc(length_random_str);
     memset(pload->random_str, 0, (length_random_str * sizeof(char)));
     strncpy(pload->random_str, random_str, length_random_str);
@@ -21,6 +24,7 @@ void freePayload(Payload *pload)
 {
     free(pload->random_str);
     free(pload->simple_str);
+    //free(pload);
 }
 
 // Populate the vector with random strings - single thread
@@ -35,6 +39,8 @@ void *zmq_push(
     std::vector<std::string> &vec,
     zmq::context_t &ctx)
 {
+    Payload *pload = NULL;
+
     // Message Buff preparation
     // PUSH-ing only the pointer to the data-struct
     const size_t size = sizeof(Payload);
@@ -56,9 +62,9 @@ void *zmq_push(
         // Randomly reading from the the Random's string vector
         size_t index = (0 + (rand() % vec_size));
         // Populating the struct with rnd string
-        initPayload(pload, vec.at(index).c_str(), "simple");
+        initPayload(&pload, vec.at(index).c_str(), "simple");
         //std::cout << thread_id << " " << vec.at(index) << "\n";
-        zmq::message_t message(pload, size);
+        zmq::message_t message(&pload, size);
         sock.send(message, zmq::send_flags::none);
         //std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -89,12 +95,11 @@ void zmq_pull(zmq::context_t &ctx)
         auto res = sock.recv(message, zmq::recv_flags::none);
         if (res.value() != 0) {
             std::cout << thread_id << " PULL-ing from " << sok << ": "
-                << ((Payload *) message.data())->random_str << " "
-                << ((Payload *) message.data())->simple_str << "\n";
+                << ((Payload *) message.handle())->random_str << " "
+                << ((Payload *) message.handle())->simple_str << "\n";
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(200));
         freePayload(((Payload *) message.data()));
-        //free(((Payload *) message.data()));
     }
 }
 
